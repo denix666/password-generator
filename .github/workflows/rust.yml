@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  linux_build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --release
+
+    - shell: bash
+      run: |
+        mv target/release/password-generator password-generator
+        chmod 777 password-generator
+        tar cpfz password-generator_linux_x86_64.tar.gz password-generator
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: password-generator_linux_x86_64.tar.gz
+
+  windows_build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --release
+
+    - name: Prepare artifact
+      shell: pwsh
+      run: |
+        Move-Item target/release/password-generator.exe password-generator.exe
+        Compress-Archive -Path password-generator.exe -DestinationPath password-generator_windows_x86_64.zip
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: password-generator_windows_x86_64.zip
+
+  macos_build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --release
+
+    - shell: bash
+      run: |
+        mv target/release/password-generator password-generator
+        chmod 777 password-generator
+        tar cpfz password-generator_macos_x86_64.tar.gz password-generator
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: password-generator_macos_x86_64.tar.gz

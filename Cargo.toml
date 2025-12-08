@@ -1,0 +1,10 @@
+[package]
+name = "password-generator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.33.2"
+arboard = "3"
+rand = "0.9"
+image = "0.25"
