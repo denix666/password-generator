@@ -1,6 +1,8 @@
 # Password Generator
 
-![Password Generator](https://img.shields.io/badge/Version-0.1.0-blue) ![Rust](https://img.shields.io/badge/Made%20with-Rust-orange) ![License](https://img.shields.io/badge/License-MIT-green)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=plastic)](https://github.com/denix666/password-generator)
+[![Latest Release](https://img.shields.io/github/v/release/denix666/password-generator?style=plastic)](https://github.com/denix666/password-generator/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic)](https://opensource.org/licenses/MIT)
 
 A secure, user-friendly password generator built with Rust and eframe. Generate strong passwords with customizable options for enhanced security.
 

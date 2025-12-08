@@ -1,5 +1,5 @@
 pkgname=password-generator
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="UI tool that creates unique and random passwords"
 arch=('x86_64')
@@ -16,6 +16,3 @@ package() {
     install -D -m644 password-generator.png ${pkgdir}/usr/share/pixmaps/password-generator.png
     install -D -m644 password-generator.desktop ${pkgdir}/usr/share/applications/password-generator.desktop
 }
-sha256sums=('544ede56e366baaaef60ed340a0be98b74bcb49e0d32f987354f9e67fb54d979'
-            '3773a0cd9821b818140d54a77c897baef5581fb1179ae4e7bfc35ef7fef60dbc'
-            '1a5314ec32d8b6350cdd5e0057b5012d09d8e74da5355ce649c4ef7dc374d996')
