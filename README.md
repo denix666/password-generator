@@ -12,7 +12,7 @@ A secure, user-friendly password generator built with Rust and eframe. Generate 
 - Control password length (4-32 characters)
 - Include or exclude letters (a-z, A-Z)
 - Include or exclude numbers (0-9)
-- Include or exclude special characters (!@#*()_[]{},)
+- Include or exclude special characters (Define characters, that you want to include in generation)
 
 ✅ **User-Friendly Interface**
 - Clean, intuitive design
@@ -60,13 +60,13 @@ A secure, user-friendly password generator built with Rust and eframe. Generate 
 2. Select character types using checkboxes:
    - Letters (a-z, A-Z)
    - Numbers (0-9)
-   - Special characters (!@#*()_[]{},)
+   - Special characters
 3. Click "Generate Password"
 4. Click the clipboard icon to copy the password
 
 ## Default Settings
 
-- Password length: 10 characters
+- Password length: 12 characters
 - All character types enabled (letters, numbers, and special characters)
 
 ## Dependencies

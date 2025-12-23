@@ -10,6 +10,7 @@ pub struct Options {
     pub use_letters: bool,
     pub use_numbers: bool,
     pub use_special_chars: bool,
+    pub special_chars_set: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -34,6 +35,7 @@ pub fn write_config_to_file(
     use_letters: bool,
     use_numbers: bool,
     use_special_chars: bool,
+    special_chars_set: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut config_file_path = app_root_path();
     config_file_path.push(crate::MAIN_CONFIG_FILE_NAME);
@@ -50,6 +52,7 @@ pub fn write_config_to_file(
             use_letters,
             use_numbers,
             use_special_chars,
+            special_chars_set,
         }
     };
 
@@ -76,10 +79,11 @@ pub fn read_app_config_from_file() -> Config {
         options: Options {
             last_window_pos_x: 20.0,
             last_window_pos_y: 10.0,
-            password_length: 10,
+            password_length: 12,
             use_letters: true,
             use_numbers: true,
             use_special_chars: true,
+            special_chars_set: "!@#*()_[]{},".to_string(),
         },
     };
 
@@ -89,10 +93,11 @@ pub fn read_app_config_from_file() -> Config {
             write_config_to_file(
                 20.0,
                 10.0,
-                10,
+                12,
                 true,
                 true,
                 true,
+                "!@#*()_[]{},".to_string(),
             ).unwrap();
             to_string(&new_config).unwrap()
         }
@@ -105,10 +110,11 @@ pub fn read_app_config_from_file() -> Config {
             write_config_to_file(
                 20.0,
                 10.0,
-                10,
+                12,
                 true,
                 true,
                 true,
+                "!@#*()_[]{},".to_string(),
             ).unwrap();
             new_config
         }

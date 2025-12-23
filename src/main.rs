@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::collections::HashSet;
+
 use eframe::*;
 use egui::{Color32, RichText, Slider};
 use rand::Rng;
@@ -19,6 +21,51 @@ pub fn load_embedded_icon() -> Result<crate::egui::IconData, String> {
     Ok(crate::egui::IconData { rgba, width, height })
 }
 
+#[derive(Debug, PartialEq)]
+enum PasswordStrength {
+    Strong,  // Зеленый
+    Good,  // Желтый
+    Medium,  // Оранжевый
+    Weak,    // Красный
+}
+
+fn check_password_strength(password: &str) -> PasswordStrength {
+    let len = password.len();
+
+    // Check if it contents special chars
+    let has_uppercase = password.chars().any(|c| c.is_uppercase());
+    let has_lowercase = password.chars().any(|c| c.is_lowercase());
+    let has_digits = password.chars().any(|c| c.is_numeric());
+    let has_special = password.chars().any(|c| !c.is_alphanumeric());
+
+    // Calculate cases and types
+    let mut types_count = 0;
+    if has_uppercase { types_count += 1; }
+    if has_lowercase { types_count += 1; }
+    if has_digits { types_count += 1; }
+    if has_special { types_count += 1; }
+
+    // 1. СИЛЬНЫЙ: длинный (12+) и минимум 4 типа символов
+    if len >= 12 && types_count >= 4 {
+        PasswordStrength::Strong
+    }
+
+    // 1. ХОРОШИЙ: длина (10+) и минимум 3 типа символов
+    else if len >= 10 && types_count >= 3 {
+        PasswordStrength::Good
+    }
+
+    // 2. СРЕДНИЙ: средняя длина (8+) и минимум 2 типа символов
+    else if len >= 8 && types_count >= 2 {
+        PasswordStrength::Medium
+    }
+
+    // 3. СЛАБЫЙ: короткий или однообразный
+    else {
+        PasswordStrength::Weak
+    }
+}
+
 struct PasswordApp {
     password: String,
     password_length: usize,
@@ -28,9 +75,34 @@ struct PasswordApp {
     copy_status: String,
     copy_status_time: Option<std::time::Instant>,
     special_chars_set: String,
+    special_chars_set_input: String,
 }
 
 impl PasswordApp {
+    fn input_is_good(&mut self) -> bool {
+        if self.special_chars_set_input.is_empty() {
+            return false;
+        }
+
+        let mut seen_chars = HashSet::new();
+
+        for ch in self.special_chars_set_input.chars() {
+            // 1. Проверяем, является ли символ буквой или цифрой
+            // Если да — значит это не спец-символ, возвращаем false
+            if ch.is_alphanumeric() {
+                return false;
+            }
+
+            // 2. Пытаемся вставить символ в HashSet.
+            // Если insert() возвращает false, значит символ уже был в наборе
+            if !seen_chars.insert(ch) {
+                return false;
+            }
+        }
+
+        true
+    }
+
     fn generate_password(&mut self) {
         let mut rng = rand::rng();
         let mut available_chars = Vec::new();
@@ -110,8 +182,11 @@ fn main() {
         use_special_chars: app_config.options.use_special_chars,
         copy_status: String::new(),
         copy_status_time: None,
-        special_chars_set: "!@#*()_[]{},".to_string(),
+        special_chars_set: app_config.options.special_chars_set.clone(),
+        special_chars_set_input: String::new(),
     };
+
+    password_app.special_chars_set_input = password_app.special_chars_set.clone();
 
     eframe::run_simple_native(&title, options, move |ctx, _frame| {
         ctx.set_visuals(egui::Visuals::dark());
@@ -135,9 +210,15 @@ fn main() {
                 ui.vertical_centered(|ui| {
                     ui.horizontal(|ui| {
                         ui.label("Password: ");
-                        let text_edit = egui::TextEdit::singleline(&mut password_app.password)
-                            .desired_width(300.0);
-                        ui.add(text_edit);
+
+                        let pass_color = match check_password_strength(password_app.password.as_str()) {
+                            PasswordStrength::Strong => Color32::GREEN,
+                            PasswordStrength::Good => Color32::YELLOW,
+                            PasswordStrength::Medium => Color32::ORANGE,
+                            PasswordStrength::Weak => Color32::RED,
+                        };
+
+                        ui.add(egui::TextEdit::singleline(&mut password_app.password).desired_width(300.0).text_color(pass_color));
 
                         if ui.button("📋").on_hover_text("Copy to clipboard").clicked() {
                             if let Err(e) = password_app.copy_to_clipboard() {
@@ -166,7 +247,17 @@ fn main() {
                             // Character types
                             ui.checkbox(&mut password_app.use_letters, "Include letters (a-z, A-Z)");
                             ui.checkbox(&mut password_app.use_numbers, "Include numbers (0-9)");
-                            ui.checkbox(&mut password_app.use_special_chars, format!("Include special characters ( {} )", password_app.special_chars_set));
+
+                            ui.horizontal(|ui| {
+                                ui.checkbox(&mut password_app.use_special_chars, "Include special characters");
+                                if ui.add_enabled(password_app.use_special_chars, egui::TextEdit::singleline(&mut password_app.special_chars_set_input)).changed() {
+                                    if password_app.input_is_good() {
+                                        password_app.special_chars_set = password_app.special_chars_set_input.clone();
+                                    } else {
+                                        password_app.special_chars_set_input = password_app.special_chars_set.clone();
+                                    }
+                                }
+                            });
                         });
                     });
 
@@ -198,6 +289,11 @@ fn main() {
                 app_config.options.use_special_chars = password_app.use_special_chars;
             }
 
+            if password_app.special_chars_set != app_config.options.special_chars_set {
+                config_should_be_saved = true;
+                app_config.options.special_chars_set = password_app.special_chars_set_input.clone();
+            }
+
             if config_should_be_saved {
                 let _ = write_config_to_file(
                     app_config.options.last_window_pos_x,
@@ -206,6 +302,7 @@ fn main() {
                     app_config.options.use_letters,
                     app_config.options.use_numbers,
                     app_config.options.use_special_chars,
+                    app_config.options.special_chars_set.clone(),
                 );
                 config_should_be_saved = false;
             }
